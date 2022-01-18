@@ -12,4 +12,5 @@ public interface ExtractedUrlService {
     public void save(PayloadDto payload);
 
     public List<ExtractedUrl> findAll();
+    public void saveAll(List<ExtractedUrl> extractedUrls);
 }
