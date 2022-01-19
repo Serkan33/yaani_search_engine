@@ -15,6 +15,8 @@ import org.springframework.web.client.RestTemplate;
 import java.lang.reflect.Type;
 import java.net.URI;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 @RestController
 public class ExtractUrlController {
@@ -32,27 +34,13 @@ public class ExtractUrlController {
     }
 
     @PostMapping("parse/xml")
-    public String extractUrl(@RequestBody PayloadDto payload) {
-        String content = this.restTemplate.getForObject(payload.getSitemapUrl(), String.class);
-        long time = System.currentTimeMillis();
-        URI uri = null;
-        try {
-            uri = new URI(payload.getSitemapUrl());
-            SitemapInfo sitemapInfo = new SitemapInfo();
-            String domain = uri.getHost();
-            sitemapInfo.setDomain(domain);
-            sitemapInfo.setSiteMapUrl(payload.getSitemapUrl());
-            sitemapInfo = sitemapService.save(sitemapInfo);
-            List<ExtractedUrl> extractedUrls = xmlParser.parseWithStAX(content, sitemapInfo);
-            extractUrlService.saveAll(extractedUrls);
-            time = System.currentTimeMillis() - time;
-            sitemapInfo.setProcessingTime(time);
-            sitemapInfo.setUrlCount(extractedUrls.size());
-            sitemapService.save(sitemapInfo);
-        } catch (Exception e) {
-            throw new RuntimeException(e.getMessage());
-        }
-        return "Success";
+    public SitemapInfo extractUrl(@RequestBody PayloadDto payload) throws ExecutionException, InterruptedException {
+        CompletableFuture<SitemapInfo> sitemapInfoCompletableFuture = sitemapService.asyncParseUrl(payload);
+        System.out.println("******* Async asyncParseUrl started *******");
+        SitemapInfo sitemapInfo = sitemapInfoCompletableFuture.get();
+        sitemapService.asyncSaveExtractedUrl(sitemapInfo.getExtractedUrls());
+        System.out.println("asyncParseUrl Response");
+        return sitemapInfo;
     }
 
     @GetMapping("url/list")

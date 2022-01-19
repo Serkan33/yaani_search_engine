@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Component
@@ -62,10 +63,12 @@ public class XmlParser {
             XMLStreamReader streamReader = inputFactory.createXMLStreamReader(new ByteArrayInputStream(xmlArray));
             while (streamReader.hasNext()) {
                 if (streamReader.isStartElement()) {
-                    if ("loc".equals(streamReader.getLocalName())) {
+                    if ("loc".equals(streamReader.getLocalName())&&"".equals(streamReader.getPrefix())) {
                         String loc = streamReader.getElementText();
                         extractedUrl = new ExtractedUrl();
                         extractedUrl.setSitemapInfo(sitemapInfo);
+                        extractedUrl.setCreatedDate(new Date());
+                        extractedUrl.setLastModifiedDate(new Date());
                         extractedUrl.setUrl(loc);
                         locations.add(extractedUrl);
                     }

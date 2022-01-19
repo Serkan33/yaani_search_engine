@@ -27,6 +27,6 @@ public class BaseEntity {
     @CreationTimestamp
     private Date createdDate;
     @CreationTimestamp
-    private Instant lastModifiedDate;
+    private Date lastModifiedDate;
 
 }
