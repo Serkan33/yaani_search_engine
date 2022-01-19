@@ -6,6 +6,7 @@ import com.yaani.searchengine.entity.SitemapInfo;
 import com.yaani.searchengine.parser.XmlParser;
 import com.yaani.searchengine.repository.ExtractedUrlRepository;
 import com.yaani.searchengine.repository.SitemapRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -16,6 +17,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 @Service
+@Slf4j
 public class SitemapServiceImpl {
     private  final SitemapRepository sitemapRepository;
     private  final ExtractedUrlRepository extractedUrlRepository;
@@ -38,13 +40,12 @@ public class SitemapServiceImpl {
 
     @Async("asyncExecutor")
     public CompletableFuture<SitemapInfo> asyncParseUrl(PayloadDto payloadDto) {
-
+        log.info("******* Async asyncParseUrl started *******");
         String sitemapUrl = payloadDto.getSitemapUrl();
         String content = this.restTemplate.getForObject(sitemapUrl, String.class);
         long time = System.currentTimeMillis();
-        URI uri = null;
         try {
-            uri = new URI(sitemapUrl);
+            URI  uri = new URI(sitemapUrl);
             SitemapInfo sitemapInfo = new SitemapInfo();
             String domain = uri.getHost();
             sitemapInfo.setDomain(domain);
@@ -55,17 +56,18 @@ public class SitemapServiceImpl {
             sitemapInfo.setUrlCount(extractedUrls.size());
             sitemapInfo =  sitemapRepository.save(sitemapInfo);
             sitemapInfo.setExtractedUrls(extractedUrls);
+            log.info("********** asyncParseUrl Response ***********");
              return  CompletableFuture.completedFuture(sitemapInfo);
         } catch (Exception e) {
+            log.error(e.getMessage(),e);
             throw new RuntimeException(e.getMessage());
         }
     }
 
     @Async("asyncExecutor")
-    public  CompletableFuture<List<ExtractedUrl>> asyncSaveExtractedUrl(List<ExtractedUrl> extractedUrls){
-        System.out.println("*******START Async asyncSaveExtractedUrl *******");
-        List<ExtractedUrl>  urls = extractedUrlRepository.saveAll(extractedUrls);
-        System.out.println("*******END Async asyncSaveExtractedUrl *******");
-        return  CompletableFuture.completedFuture(urls);
+    public void asyncSaveExtractedUrl(List<ExtractedUrl> extractedUrls){
+        log.info("*******START Async asyncSaveExtractedUrl *******");
+        extractedUrlRepository.saveAll(extractedUrls);
+        log.info("*******END Async asyncSaveExtractedUrl *******");
     }
 }
