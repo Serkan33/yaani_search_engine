@@ -19,6 +19,7 @@ public class SitemapInfo extends BaseEntity{
     private String domain;
     private Integer urlCount;
     private Long processingTime;
+    private String siteMapUrl;
     @OneToMany(mappedBy = "sitemapInfo",fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private List<ExtractedUrl> extractedUrls;
 }

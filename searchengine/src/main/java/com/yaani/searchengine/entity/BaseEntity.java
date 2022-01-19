@@ -24,7 +24,6 @@ public class BaseEntity {
             strategy = "org.hibernate.id.UUIDGenerator"
     )
     private UUID id;
-    private String url;
     @CreationTimestamp
     private Date createdDate;
     @CreationTimestamp

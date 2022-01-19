@@ -14,15 +14,19 @@ import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamReader;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.StringReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
 @Component
 public class XmlParser {
 
-    public  List<ExtractedUrl> getLocations(String content, SitemapInfo sitemapInfo){
+    public  List<ExtractedUrl> parse(String content, SitemapInfo sitemapInfo){
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         List<ExtractedUrl> locations = new ArrayList<>();
         ExtractedUrl extractedUrl;
@@ -47,5 +51,56 @@ public class XmlParser {
             e.printStackTrace();
         }
         return locations;
+    }
+    public List<ExtractedUrl> parseWithStAX(String content,SitemapInfo sitemapInfo){
+
+        List<ExtractedUrl> locations = new ArrayList<>();
+        ExtractedUrl extractedUrl;
+        try {
+            byte [] xmlArray = content.getBytes(StandardCharsets.UTF_8);
+            XMLInputFactory inputFactory = XMLInputFactory.newInstance();
+            XMLStreamReader streamReader = inputFactory.createXMLStreamReader(new ByteArrayInputStream(xmlArray));
+            while (streamReader.hasNext()) {
+                if (streamReader.isStartElement()) {
+                    if ("loc".equals(streamReader.getLocalName())) {
+                        String loc = streamReader.getElementText();
+                        extractedUrl = new ExtractedUrl();
+                        extractedUrl.setSitemapInfo(sitemapInfo);
+                        extractedUrl.setUrl(loc);
+                        locations.add(extractedUrl);
+                    }
+                }
+                streamReader.next();
+            }
+        }
+        catch (Exception e){
+            throw  new RuntimeException(e.getMessage());
+        }
+        return locations;
+    }
+
+    public String parseWithStAXStr(String content){
+
+        String data ="";
+        int count = 0;
+        try {
+            byte [] xmlArray = content.getBytes(StandardCharsets.UTF_8);
+            XMLInputFactory inputFactory = XMLInputFactory.newInstance();
+            XMLStreamReader streamReader = inputFactory.createXMLStreamReader(new ByteArrayInputStream(xmlArray));
+            while (streamReader.hasNext()) {
+                if (streamReader.isStartElement()) {
+                    if ("loc".equals(streamReader.getLocalName())) {
+                        data+="{\"url\": \""+streamReader.getElementText()+"\"},";
+                        count++;
+                    }
+                }
+                streamReader.next();
+            }
+        }
+        catch (Exception e){
+            throw  new RuntimeException(e.getMessage());
+        }
+         return  "["+data+"]";
+
     }
 }
