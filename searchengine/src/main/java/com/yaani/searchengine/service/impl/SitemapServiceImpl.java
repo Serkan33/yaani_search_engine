@@ -8,9 +8,14 @@ import com.yaani.searchengine.repository.ExtractedUrlRepository;
 import com.yaani.searchengine.repository.SitemapRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.net.URI;
 import java.util.List;
@@ -42,7 +47,10 @@ public class SitemapServiceImpl {
     public CompletableFuture<SitemapInfo> asyncParseUrl(PayloadDto payloadDto) {
         log.info("******* Async asyncParseUrl started *******");
         String sitemapUrl = payloadDto.getSitemapUrl();
-        String content = this.restTemplate.getForObject(sitemapUrl, String.class);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.valueOf(MediaType.TEXT_XML_VALUE));
+        HttpEntity<String> request =  new HttpEntity<>(headers);
+        String content = this.restTemplate.getForObject(sitemapUrl,String.class,request);
         long time = System.currentTimeMillis();
         try {
             URI  uri = new URI(sitemapUrl);
@@ -60,7 +68,7 @@ public class SitemapServiceImpl {
              return  CompletableFuture.completedFuture(sitemapInfo);
         } catch (Exception e) {
             log.error(e.getMessage(),e);
-            throw new RuntimeException(e.getMessage());
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,e.getMessage()+" , Response: "+content,e);
         }
     }
 

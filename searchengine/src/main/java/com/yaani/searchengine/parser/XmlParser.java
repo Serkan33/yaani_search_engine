@@ -2,6 +2,7 @@ package com.yaani.searchengine.parser;
 
 import com.yaani.searchengine.entity.ExtractedUrl;
 import com.yaani.searchengine.entity.SitemapInfo;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -25,6 +26,7 @@ import java.util.Date;
 import java.util.List;
 
 @Component
+@Slf4j
 public class XmlParser {
 
     public  List<ExtractedUrl> parse(String content, SitemapInfo sitemapInfo){
@@ -77,6 +79,7 @@ public class XmlParser {
             }
         }
         catch (Exception e){
+            log.error("Sitemap-Response-Content: "+content);
             throw  new RuntimeException(e.getMessage());
         }
         return locations;

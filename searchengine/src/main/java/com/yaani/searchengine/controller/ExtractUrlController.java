@@ -7,7 +7,9 @@ import com.yaani.searchengine.exception.MissingRequiredFieldException;
 import com.yaani.searchengine.service.impl.ExtractedUrlServiceImpl;
 import com.yaani.searchengine.service.impl.SitemapServiceImpl;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import javax.validation.Valid;
 import java.util.*;
@@ -32,7 +34,7 @@ public class ExtractUrlController {
         String pattern = "((http|https)://)(www.)?[a-zA-Z0-9@:%._\\+~#?&//=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%._\\+~#?&//=]*)\\.xml$";
         if (!Pattern.matches(pattern,payload.getSitemapUrl())){
             log.error("Geçerli bir sitemap.xml adresi giriniz");
-            throw  new MissingRequiredFieldException("Geçerli bir sitemap.xml adresi giriniz");
+            throw  new ResponseStatusException(HttpStatus.BAD_REQUEST,"Geçerli bir sitemap.xml adresi giriniz");
         }
         CompletableFuture<SitemapInfo> sitemapInfoCompletableFuture = sitemapService.asyncParseUrl(payload);
         SitemapInfo sitemapInfo = sitemapInfoCompletableFuture.get();
